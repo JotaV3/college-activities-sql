@@ -219,3 +219,36 @@ INSERT INTO film_gender VALUES
 (5,4), -- Senhor dos Anéis -> Fantasia
 (6,4), -- Harry Potter -> Fantasia
 (7,5); -- Jurassic Park -> Aventura
+
+/*
+Atividade 1 — Índice por cidade dos funcionários
+• Contexto: relatórios de funcionários por cidade são lentos.
+• Passos:
+1. Identifique a tabela Pessoas (campo CidadeID).
+2. Crie um índice para acelerar buscas por cidade.
+3. Teste com uma consulta filtrando por cidade.
+*/
+
+CREATE INDEX idx_person_city_id
+ON person(city_id);
+
+SELECT e.id, p.person_name, p.city_id
+FROM employee e
+INNER JOIN person p ON p.id = e.person_id
+WHERE city_id = 2;
+
+/*
+Atividade 2 — Índice por data de aquisição das mídias
+• Contexto: relatórios de mídias adquiridas por período.
+• Passos:
+1. Use a tabela Midias.
+2. Crie índice sobre DataAquisicao.
+3. Teste com SELECT * FROM Midias WHERE DataAquisicao BETWEEN
+*/
+
+CREATE INDEX idx_media_acquisition_date
+ON media(acquisition_date);
+
+SELECT *
+FROM media
+WHERE acquisition_date BETWEEN '2025-01-10' AND '2025-01-31'; 
