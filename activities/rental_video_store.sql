@@ -42,12 +42,12 @@ CREATE TABLE customer(
 );
 
 CREATE TABLE employee(
-	id INT PRIMARY KEY,
+	id INT AUTO_INCREMENT PRIMARY KEY,
     person_id INT,
     
     hiring_date DATE NOT NULL,
     termination_date DATE,
-    salary FLOAT NOT NULL,
+    salary DECIMAL(10,2) NOT NULL,
     position VARCHAR(50),
     
     FOREIGN KEY(person_id) REFERENCES person(id)
@@ -58,6 +58,7 @@ CREATE TABLE loan(
     customer_id INT,
     
     loan_date DATE NOT NULL,
+    penalty_total DECIMAL(10,2) NOT NULL DEFAULT 0,
     
     FOREIGN KEY(customer_id) REFERENCES customer(id)
 );
@@ -182,7 +183,7 @@ INSERT INTO media VALUES
 (9,9,3,'2025-02-10'),
 (10,10,1,'2025-02-15');
 
-INSERT INTO loan VALUES
+INSERT INTO loan(id, customer_id, loan_date) VALUES
 (1,1,'2025-03-01'),
 (2,2,'2025-03-02'),
 (3,3,'2025-03-03'),
@@ -296,3 +297,70 @@ GROUP BY c.id, p.person_name, c.registration_date;
 
 SELECT *
 FROM vw_customer_total_loan;
+
+/*
+Atividade 5 — Procedure para registrar novo funcionário
+• Contexto: automatizar cadastro com data de admissão atual.
+• Passos:
+1. Use tabela Funcionarios.
+2. Receba PessoaID e Salario como parâmetros.
+3. Insira registro com DataAdmissao = CURDATE().
+*/
+
+DELIMITER //
+CREATE PROCEDURE register_employee(
+	IN p_personId INT,
+    IN p_salary DECIMAL(10,2)
+)
+BEGIN
+	INSERT INTO employee(person_id, hiring_date,salary)
+    VALUES(p_personId, CURDATE(), p_salary);
+END //
+
+DELIMITER ;
+
+CALL register_employee(9, 3200.50);
+
+/*
+Atividade 6 — Procedure para aplicar multa de atraso
+• Contexto: atualizar valor total do empréstimo com multa.
+• Passos:
+1. Use ItensEmprestimo e Emprestimos.
+2. Calcule dias de atraso e valor da multa.
+3. Atualize o total do empréstimo.
+*/
+
+DELIMITER //
+
+CREATE PROCEDURE apply_late_penalty(
+    IN p_loan_id INT,
+    IN p_daily_penalty DECIMAL(10,2)
+)
+BEGIN
+    DECLARE v_penalty_total DECIMAL(10,2);
+
+    SELECT COALESCE(
+        SUM(
+            GREATEST(
+                DATEDIFF(
+                    COALESCE(return_date, CURDATE()),
+                    expected_return_date
+                ),
+                0
+            ) * p_daily_penalty
+        ),
+        0
+    )
+    INTO v_penalty_total
+    FROM loan_item
+    WHERE loan_id = p_loan_id;
+
+    UPDATE loan
+    SET penalty_total = v_penalty_total
+    WHERE id = p_loan_id;
+
+END //
+
+DELIMITER ;
+
+CALL apply_late_penalty(1, 2.00);
