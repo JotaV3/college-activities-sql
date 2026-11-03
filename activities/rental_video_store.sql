@@ -65,7 +65,7 @@ CREATE TABLE loan(
 CREATE TABLE film(
 	id INT PRIMARY KEY,
     
-    titulo VARCHAR(50) NOT NULL,
+    title VARCHAR(50) NOT NULL,
     duration INT NOT NULL,
     director VARCHAR(50) NOT NULL,
     actors TEXT NOT NULL,
@@ -220,7 +220,7 @@ INSERT INTO film_gender VALUES
 (6,4), -- Harry Potter -> Fantasia
 (7,5); -- Jurassic Park -> Aventura
 
-/*
+/* INDEX
 Atividade 1 — Índice por cidade dos funcionários
 • Contexto: relatórios de funcionários por cidade são lentos.
 • Passos:
@@ -237,7 +237,7 @@ FROM employee e
 INNER JOIN person p ON p.id = e.person_id
 WHERE city_id = 2;
 
-/*
+/* INDEX
 Atividade 2 — Índice por data de aquisição das mídias
 • Contexto: relatórios de mídias adquiridas por período.
 • Passos:
@@ -252,3 +252,47 @@ ON media(acquisition_date);
 SELECT *
 FROM media
 WHERE acquisition_date BETWEEN '2025-01-10' AND '2025-01-31'; 
+
+/* VIEW
+Atividade 3 — View de filmes adquiridos por ano
+• Contexto: relatório anual de novos filmes.
+• Passos:
+1. Relacione Filmes, Midias e TiposMidias.
+2. Mostre Titulo, DataAquisicao, TipoMidia.
+3. Agrupe ou ordene por ano de aquisição.
+*/
+
+CREATE VIEW vw_films_acquired_per_year AS
+SELECT 
+	f.title, 
+    mt.media_type_description,
+    m.acquisition_date
+FROM film f
+JOIN media m ON m.film_id = f.id
+JOIN media_type mt ON mt.id = m.media_type_id;
+
+SELECT *
+FROM vw_films_acquired_per_year
+ORDER BY YEAR(acquisition_date);
+
+/* VIEW
+Atividade 4 — View de clientes e total de empréstimos
+• Contexto: controle de frequência de locações.
+• Passos:
+1. Relacione Clientes, Emprestimos e Pessoas.
+2. Conte quantos empréstimos cada cliente fez.
+3. Exiba Nome, DataCadastro, QtdEmprestimos.
+*/
+
+CREATE VIEW vw_customer_total_loan AS
+SELECT 
+	p.person_name,
+    c.registration_date,
+    COUNT(l.id) AS loan_amount
+FROM customer c
+INNER JOIN person p ON p.id = c.person_id
+LEFT JOIN loan l ON l.customer_id = c.id
+GROUP BY c.id, p.person_name, c.registration_date;
+
+SELECT *
+FROM vw_customer_total_loan;
