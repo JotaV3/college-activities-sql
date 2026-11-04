@@ -298,7 +298,7 @@ GROUP BY c.id, p.person_name, c.registration_date;
 SELECT *
 FROM vw_customer_total_loan;
 
-/*
+/* PROCEDURE
 Atividade 5 — Procedure para registrar novo funcionário
 • Contexto: automatizar cadastro com data de admissão atual.
 • Passos:
@@ -321,7 +321,7 @@ DELIMITER ;
 
 CALL register_employee(9, 3200.50);
 
-/*
+/* PROCEDURE
 Atividade 6 — Procedure para aplicar multa de atraso
 • Contexto: atualizar valor total do empréstimo com multa.
 • Passos:
@@ -364,3 +364,64 @@ END //
 DELIMITER ;
 
 CALL apply_late_penalty(1, 2.00);
+
+/* FUNCTION
+Atividade 7 — Function para calcular tempo de casa do funcionário
+• Contexto: calcular anos desde a admissão.
+• Passos:
+1. Use DataAdmissao da tabela Funcionarios.
+2. Retorne diferença em anos até CURDATE().
+*/
+
+DELIMITER //
+
+CREATE FUNCTION calculator_employee_length_service(
+	p_employeeId INT
+) 
+RETURNS INT
+NOT DETERMINISTIC
+READS SQL DATA
+BEGIN
+	DECLARE v_hiring_date DATE;
+
+	SELECT hiring_date
+    INTO v_hiring_date
+    FROM employee
+    WHERE id = p_employeeId;
+    
+    RETURN TIMESTAMPDIFF(YEAR, v_hiring_date, CURDATE());
+END //
+
+SELECT calculator_employee_length_service(1);
+
+/* FUNCTION
+Atividade 8 — Function para verificar disponibilidade de mídia
+• Contexto: impedir locação de mídia sem devolução.
+• Passos:
+1. Verifique se há registro em ItensEmprestimo sem DataDevolucao.
+2. Retorne 1 (disponível) ou 0 (indisponível).
+*/
+
+DELIMITER //
+
+CREATE FUNCTION is_media_available(
+	p_mediaId INT
+) 
+RETURNS BOOLEAN
+NOT DETERMINISTIC
+READS SQL DATA
+BEGIN
+	DECLARE v_open_loans INT DEFAULT 0;
+
+    SELECT COUNT(*)
+    INTO v_open_loans
+    FROM loan_item
+    WHERE media_id = p_mediaId
+    AND return_date IS NULL;
+
+    RETURN v_open_loans = 0;
+END //
+
+DELIMITER ;
+
+SELECT is_media_available(1);
